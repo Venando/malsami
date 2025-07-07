@@ -116,4 +116,34 @@ void main() {
     expect(phonemes, contains('ɑɹ')); // are
     expect(phonemes, contains('ænd')); // and
   });
+
+  test('specific word pronunciations - hijacked, illuminates, retrieved', () async {
+    final g2p = EnglishG2P();
+    await g2p.initialize();
+    
+    // Test hijacked - should produce hˈIʤˌækt
+    final (phonemes1, tokens1) = await g2p.convert('hijacked');
+    expect(phonemes1, equals('hˈIʤˌækt'));
+    
+    // Test illuminates - should produce ɪlˈumənˌAts
+    final (phonemes2, tokens2) = await g2p.convert('illuminates');
+    expect(phonemes2, equals('ɪlˈumənˌAts'));
+    
+    // Test retrieved - should produce ɹətɹˈivd
+    final (phonemes3, tokens3) = await g2p.convert('retrieved');
+    expect(phonemes3, equals('ɹətɹˈivd'));
+  });
+
+  test('sentence with hijacked, illuminates, retrieved', () async {
+    final g2p = EnglishG2P();
+    await g2p.initialize();
+    
+    final text = 'When your attention is steady, so is your mind: not rattled or hijacked by whatever pops into awareness, but stably present, grounded, and unshakeable. Attention is like a spotlight, and what it illuminates streams into your mind and shapes your brain. Whatever you call it, it is a space that holds incoming information, old information retrieved from memory, and mental operations on both.';
+    final (phonemes, tokens) = await g2p.convert(text);
+    
+    // Test that specific words produce expected phonemes
+    expect(phonemes, contains('hˈIʤˌækt')); // hijacked
+    expect(phonemes, contains('ɪlˈumənˌAts')); // illuminates
+    expect(phonemes, contains('ɹətɹˈivd')); // retrieved
+  });
 }

@@ -206,7 +206,7 @@ class Lexicon {
     }
 
     // Handle 'vs' and 'vs.'
-    if (tag == 'IN' && RegExp(r'(?i)vs\.?$').hasMatch(word)) {
+    if (tag == 'IN' && RegExp(r'vs\.?$', caseSensitive: false).hasMatch(word)) {
       return lookup('versus', null, null, ctx, depth: depth + 1);
     }
 

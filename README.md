@@ -20,13 +20,13 @@ Add the package to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  malsami_dart: ^0.1.0
+  malsami: ^0.0.3
 ```
 
 Import the package in your Dart code:
 
 ```dart
-import 'package:malsami_dart/malsami.dart';
+import 'package:malsami/malsami.dart';
 ```
 
 ## Usage
