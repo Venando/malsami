@@ -10,6 +10,7 @@ import 'utils.dart';
 ///
 /// This is the Dart implementation of the Python Lexicon class
 class Lexicon {
+
   /// Whether to use British English pronunciation
   final bool british;
 
@@ -22,11 +23,16 @@ class Lexicon {
   /// Silver-standard dictionary (medium quality)
   Map<String, dynamic> silvers = {};
 
+  bool _initialized = false;
+
   /// Constructor
   Lexicon(this.british);
 
   /// Initialize the lexicon by loading dictionaries
   Future<void> initialize() async {
+
+    if (_initialized) return;
+    
     // Load the appropriate dictionaries based on language variant
     final String goldPath =
         british ? 'assets/gb_gold.json' : 'assets/us_gold.json';
@@ -35,14 +41,25 @@ class Lexicon {
 
     // Load gold dictionary
     final String goldJson = await rootBundle.loadString(goldPath);
-    golds = growDictionary(json.decode(goldJson) as Map<String, dynamic>);
 
     // Load silver dictionary
     final String silverJson = await rootBundle.loadString(silverPath);
+
+    initializeWithData(goldJson, silverJson);
+  }
+  
+  /// Initialize the lexicon by loading dictionaries
+  Future<void> initializeWithData(String goldJson, String silverJson) async {
+
+    if (_initialized) return;
+
+    golds = growDictionary(json.decode(goldJson) as Map<String, dynamic>);
     silvers = growDictionary(json.decode(silverJson) as Map<String, dynamic>);
 
     // Validate dictionaries
     _validateDictionaries();
+
+    _initialized = true;
   }
 
   /// Grow the dictionary by adding capitalized versions of lowercase words
@@ -183,7 +200,7 @@ class Lexicon {
     // Handle 'to', 'To', 'TO'
     if (word == 'to' ||
         word == 'To' ||
-        (word == 'TO' && tag == 'TO' || tag == 'IN')) {
+        (word == 'TO' && tag == 'TO')) {
       if (ctx.futureVowel == null) {
         return (golds['to'] as String, 4);
       } else if (ctx.futureVowel == false) {
@@ -333,6 +350,39 @@ class Lexicon {
         if (nnpPs != null) {
           return (nnpPs, nnpRating);
         }
+      }
+    }
+
+    // Handle ed form
+    if (word.endsWith("ed")) {
+      final base = word.substring(0, word.length - 2);
+      var (basePs, baseRating) = lookup(base, tag, null, ctx, depth: depth + 1);
+
+      if (basePs == null) {
+        final baseLong = word.substring(0, word.length - 1);
+        (basePs, baseRating) = lookup(
+          baseLong, tag, null, ctx, depth: depth + 1);
+      }
+
+      if (basePs != null) {
+        String edPhoneme = 'd';
+        if (basePs.endsWith('t')) {
+          edPhoneme = 'ɪd';
+        } else if (basePs.endsWith('d')) {
+          edPhoneme = 'əd';
+        }
+        return (applyStress('$basePs$edPhoneme', stress), baseRating);
+      }
+    }
+
+    // Handle ing form
+    if (word.endsWith("ing")) {
+      final base = word.substring(0, word.length - 3);
+      final (basePs, baseRating) = lookup(
+        base, tag, null, ctx, depth: depth + 1);
+
+      if (basePs != null) {
+        return (applyStress('$basePsɪŋ', stress), baseRating);
       }
     }
 
